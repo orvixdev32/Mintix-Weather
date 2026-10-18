@@ -1,10 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+
+function getDayName(dateString, index) {
+  if (index === 0) return 'TODAY'
+
+  return new Date(`${dateString}T12:00:00`).toLocaleDateString(
+    'en-US',
+    { weekday: 'short' }
+  ).toUpperCase()
+}
+
+function getWeatherIcon(code) {
+  if (code === 0) return '☀'
+  if ([1, 2].includes(code)) return '🌤'
+  if (code === 3) return '☁'
+  if ([45, 48].includes(code)) return '🌫'
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return '🌧'
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return '❄'
+  if ([95, 96, 99].includes(code)) return '⛈'
+
+  return '🌡'
+}
 
 function App() {
 const [city, setCity] = useState('Ivano-Frankivsk')
 const [searchCity, setSearchCity] = useState('')
 const [unit, setUnit] = useState('C')
+const [weather, setWeather] = useState(null)
 const formatTemp = (celsius) => {
   const temperature =
     unit === 'C'
@@ -13,6 +35,56 @@ const formatTemp = (celsius) => {
 
   return `${Math.round(temperature)}°`
 }
+
+const getWeatherDescription = (code) => {
+  if (code === 0) return 'Clear sky'
+  if (code === 1) return 'Mainly clear'
+  if (code === 2) return 'Partly cloudy'
+  if (code === 3) return 'Overcast'
+
+  if ([45, 48].includes(code)) return 'Foggy'
+
+  if ([51, 53, 55, 56, 57].includes(code)) {
+    return 'Drizzle'
+  }
+
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) {
+    return 'Rain'
+  }
+
+  if ([71, 73, 75, 77, 85, 86].includes(code)) {
+    return 'Snow'
+  }
+
+  if ([95, 96, 99].includes(code)) {
+    return 'Thunderstorm'
+  }
+
+  return 'Weather unavailable'
+}
+
+useEffect(() => {
+  async function fetchWeather() {
+    try {
+      const response = await fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=48.92312&longitude=24.71248&current=temperature_2m,apparent_temperature,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto'
+
+
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch weather')
+      }
+
+      const data = await response.json()
+      setWeather(data)
+    } catch (error) {
+      console.error('Weather request failed:', error)
+    }
+  }
+
+  fetchWeather()
+}, [])
   return (
     <div>
 <header className="site-header">
@@ -92,7 +164,11 @@ const formatTemp = (celsius) => {
     <div>
       <p className="weather-eyebrow">RIGHT NOW</p>
       <h2>{city}</h2>
-      <p className="weather-condition">Partly cloudy</p>
+      <p className="weather-condition">
+      {weather
+        ? getWeatherDescription(weather.current.weather_code)
+        : 'Loading weather...'}
+      </p>
     </div>
 
     <span className="weather-date">TODAY</span>
@@ -101,8 +177,11 @@ const formatTemp = (celsius) => {
   <div className="weather-main">
     <div className="temperature-block">
       <p className="temperature">
-        {formatTemp(18)}
-        <span>°{unit}</span></p>
+        {weather
+          ? formatTemp(weather.current.temperature_2m)
+          : '...'}
+        <span>{unit}</span>
+      </p>
       <p className="temperature-note">A lovely day to be outside.</p>
     </div>
 
@@ -117,12 +196,20 @@ const formatTemp = (celsius) => {
   <div className="weather-summary">
     <div>
       <span>FEELS LIKE</span>
-      <strong>{formatTemp(20)}</strong>
+      <strong>
+          {weather
+            ? formatTemp(weather.current.apparent_temperature)
+            : '...'}
+      </strong>
     </div>
 
     <div>
       <span>HIGH / LOW</span>
-      <strong>{formatTemp(21)} / {formatTemp(13)}</strong>
+      <strong>
+        {weather
+          ? `${formatTemp(weather.daily.temperature_2m_max[0])} / ${formatTemp(weather.daily.temperature_2m_min[0])}`
+          : '...'}
+      </strong>
     </div>
   </div>
 </section>
@@ -140,55 +227,35 @@ const formatTemp = (celsius) => {
   </div>
 
   <div className="forecast-list">
-    <div className="forecast-day">
-      <span className="day-name">MON</span>
-      <span className="forecast-icon sunny">☀</span>
-      <span className="day-condition">Sunny</span>
-      <div className="day-temperatures">
-        <strong>{formatTemp(21)}</strong>
-        <span>{formatTemp(13)}</span>
-      </div>
-    </div>
 
-    <div className="forecast-day">
-      <span className="day-name">TUE</span>
-      <span className="forecast-icon cloudy">☁</span>
-      <span className="day-condition">Cloudy</span>
-      <div className="day-temperatures">
-        <strong>{formatTemp(19)}</strong>
-        <span>{formatTemp(12)}</span>
-      </div>
-    </div>
 
-    <div className="forecast-day">
-      <span className="day-name">WED</span>
-      <span className="forecast-icon rainy">☂</span>
-      <span className="day-condition">Rain</span>
-      <div className="day-temperatures">
-        <strong>{formatTemp(16)}</strong>
-        <span>{formatTemp(10)}</span>
-      </div>
-    </div>
+{weather?.daily &&
+  weather.daily.time.map((date, index) => (
+    <div className="forecast-day" key={date}>
+      <span className="day-name">
+        {getDayName(date, index)}
+      </span>
 
-    <div className="forecast-day">
-      <span className="day-name">THU</span>
-      <span className="forecast-icon cloudy">☁</span>
-      <span className="day-condition">Cloudy</span>
-      <div className="day-temperatures">
-        <strong>{formatTemp(18)}</strong>
-        <span>{formatTemp(11)}</span>
-      </div>
-    </div>
+      <span className="forecast-icon">
+        {getWeatherIcon(weather.daily.weather_code[index])}
+      </span>
 
-    <div className="forecast-day">
-      <span className="day-name">FRI</span>
-      <span className="forecast-icon sunny">☀</span>
-      <span className="day-condition">Sunny</span>
+      <span className="day-condition">
+        {getWeatherDescription(weather.daily.weather_code[index])}
+      </span>
+
       <div className="day-temperatures">
-        <strong>{formatTemp(22)}</strong>
-        <span>{formatTemp(14)}</span>
+        <strong>
+          {formatTemp(weather.daily.temperature_2m_max[index])}
+        </strong>
+
+        <span>
+          {formatTemp(weather.daily.temperature_2m_min[index])}
+        </span>
       </div>
     </div>
+  ))}
+
   </div>
 </section>
 
