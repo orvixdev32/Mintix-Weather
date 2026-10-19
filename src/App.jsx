@@ -20,6 +20,57 @@ function getDayName(dateString, index) {
   ).toUpperCase()
 }
 
+function getNextHours(hourly, count = 8) {
+  if (
+    !hourly?.time ||
+    !hourly?.temperature_2m ||
+    !hourly?.weather_code
+  ) {
+    return []
+  }
+
+  // Отримуємо поточну дату й годину саме за Києвом
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Kyiv',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date())
+
+  const getPart = (type) =>
+    parts.find((part) => part.type === type)?.value
+
+  const currentHour =
+    `${getPart('year')}-${getPart('month')}-${getPart('day')}T${getPart('hour')}`
+
+  // Знаходимо поточну годину або найближчу наступну
+  let startIndex = hourly.time.findIndex(
+    (time) => time.slice(0, 13) >= currentHour
+  )
+
+  if (startIndex === -1) return []
+
+  return hourly.time
+    .slice(startIndex, startIndex + count)
+    .map((time, index) => {
+      const dataIndex = startIndex + index
+
+      return {
+        time,
+        temperature: hourly.temperature_2m[dataIndex],
+        weatherCode: hourly.weather_code[dataIndex],
+      }
+    })
+    .filter(
+      (hour) =>
+        hour.temperature !== undefined &&
+        hour.weatherCode !== undefined
+    )
+}
+
+
 function getWeatherIcon(code) {
   if (code === 0) return <Sun />
   if ([1, 2].includes(code)) return <CloudSun />
@@ -169,9 +220,11 @@ useEffect(() => {
     setWeather(null)
 
     try {
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&current=temperature_2m,apparent_temperature,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`
-      )
+
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&current=temperature_2m,apparent_temperature,weather_code&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`
+    )
+
 
       if (!response.ok) {
         throw new Error('Failed to fetch weather')
@@ -353,6 +406,43 @@ useEffect(() => {
   </div>
 </section>
 
+
+
+<section className="hourly-section">
+  <div className="forecast-heading">
+    <div>
+      <p className="forecast-eyebrow">HOUR BY HOUR</p>
+      <h2>Today's forecast</h2>
+    </div>
+
+    <span className="forecast-caption">
+      NEXT 8 HOURS
+    </span>
+  </div>
+
+  <div className="hourly-list">
+    {weather?.hourly &&
+      getNextHours(weather.hourly).map((hour) => (
+        <div className="hourly-card" key={hour.time}>
+          <span className="hourly-time">
+            {hour.time.slice(11, 16)}
+          </span>
+
+          <span className="hourly-icon">
+            {getWeatherIcon(hour.weatherCode)}
+          </span>
+
+          <strong className="hourly-temperature">
+            {formatTemp(hour.temperature)}{unit} 
+          </strong>
+
+          <span className="hourly-condition">
+            {getWeatherDescription(hour.weatherCode)}
+          </span>
+        </div>
+      ))}
+  </div>
+</section>
 
 
 <section className="forecast-section">
