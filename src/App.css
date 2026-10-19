@@ -605,3 +605,9 @@
     gap: 10px;
   }
 }
+
+.search-error {
+  margin-top: 8px;
+  color: #d9534f;
+  font-size: 13px;
+}

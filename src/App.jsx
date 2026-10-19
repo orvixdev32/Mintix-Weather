@@ -37,6 +37,61 @@ const [city, setCity] = useState('Ivano-Frankivsk')
 const [searchCity, setSearchCity] = useState('')
 const [unit, setUnit] = useState('C')
 const [weather, setWeather] = useState(null)
+const [searchError, setSearchError] = useState('')
+const [coordinates, setCoordinates] = useState({
+  latitude: 48.92312,
+  longitude: 24.71248,
+})
+
+const handleSearch = async (event) => {
+  event.preventDefault()
+
+  const trimmedCity = searchCity.trim()
+
+  if (!trimmedCity) {
+    setSearchError('Введи назву міста')
+    return
+  }
+
+  setSearchError('')
+
+  try {
+    const response = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(trimmedCity)}&count=10&language=uk&format=json`
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to find city')
+    }
+
+    const data = await response.json()
+    const results = data.results ?? []
+
+    const foundCity = results.find(
+      (result) => result.country_code === 'UA'
+    )
+
+    if (!foundCity) {
+      setSearchError(
+        'Не знайшов українське місто з такою назвою'
+      )
+      return
+    }
+
+    setCity(foundCity.name)
+
+    setCoordinates({
+      latitude: foundCity.latitude,
+      longitude: foundCity.longitude,
+    })
+
+    setSearchCity('')
+  } catch (error) {
+    console.error('City search failed:', error)
+    setSearchError('Не вдалося виконати пошук. Спробуй ще раз')
+  }
+}
+
 const formatTemp = (celsius) => {
   const temperature =
     unit === 'C'
@@ -77,9 +132,7 @@ useEffect(() => {
   async function fetchWeather() {
     try {
       const response = await fetch(
-        'https://api.open-meteo.com/v1/forecast?latitude=48.92312&longitude=24.71248&current=temperature_2m,apparent_temperature,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto'
-
-
+        `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&current=temperature_2m,apparent_temperature,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`
       )
 
       if (!response.ok) {
@@ -94,7 +147,7 @@ useEffect(() => {
   }
 
   fetchWeather()
-}, [])
+}, [coordinates])
   return (
     <div>
 <header className="site-header">
@@ -141,16 +194,8 @@ useEffect(() => {
 
   <form 
   className="city-search"
-  onSubmit={(event) => {
-    event.preventDefault()
+  onSubmit={handleSearch}
 
-    const trimmedCity = searchCity.trim()
-    
-    if (trimmedCity) {
-    setCity(trimmedCity)
-    setSearchCity('')
-  }
-  }}
   >
     <span className="search-icon" aria-hidden="true">
       ↗
@@ -166,6 +211,9 @@ useEffect(() => {
 
     <button type="submit">Find weather</button>
   </form>
+  {searchError && (
+  <p className="search-error">{searchError}</p>
+)}
 </section>
 
 
