@@ -48,6 +48,8 @@ const [unit, setUnit] = useState(() => {
 })
 const [weather, setWeather] = useState(null)
 const [searchError, setSearchError] = useState('')
+const [isLoading, setIsLoading] = useState(true)
+const [weatherError, setWeatherError] = useState('')
 
 const [coordinates, setCoordinates] = useState(() => {
   const savedCity = localStorage.getItem('weatherCity')
@@ -157,8 +159,15 @@ const getWeatherDescription = (code) => {
   return 'Weather unavailable'
 }
 
+
 useEffect(() => {
+  let ignore = false
+
   async function fetchWeather() {
+    setIsLoading(true)
+    setWeatherError('')
+    setWeather(null)
+
     try {
       const response = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&current=temperature_2m,apparent_temperature,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`
@@ -169,14 +178,34 @@ useEffect(() => {
       }
 
       const data = await response.json()
-      setWeather(data)
+
+      if (!ignore) {
+        setWeather(data)
+      }
     } catch (error) {
       console.error('Weather request failed:', error)
+
+      if (!ignore) {
+        setWeatherError(
+          'Не вдалося завантажити погоду. Перевір з’єднання та спробуй ще раз.'
+        )
+      }
+    } finally {
+      await new Promise((resolve) => setTimeout(resolve, 600))
+
+      if (!ignore) {
+        setIsLoading(false)
+      }
     }
   }
 
   fetchWeather()
+
+  return () => {
+    ignore = true
+  }
 }, [coordinates])
+
   return (
     <div>
 <header className="site-header">
@@ -259,11 +288,20 @@ useEffect(() => {
     <div>
       <p className="weather-eyebrow">RIGHT NOW</p>
       <h2>{city}</h2>
-      <p className="weather-condition">
-      {weather
-        ? getWeatherDescription(weather.current.weather_code)
-        : 'Loading weather...'}
-      </p>
+<p className="weather-condition">
+  {isLoading ? (
+    <span className="weather-loading">
+      <span className="loading-spinner" />
+      Завантажуємо погоду...
+    </span>
+  ) : weatherError ? (
+    weatherError
+  ) : weather ? (
+    getWeatherDescription(weather.current.weather_code)
+  ) : (
+    ''
+  )}
+</p>
     </div>
 
     <span className="weather-date">TODAY</span>
@@ -271,12 +309,18 @@ useEffect(() => {
 
   <div className="weather-main">
     <div className="temperature-block">
-      <p className="temperature">
-        {weather
-          ? formatTemp(weather.current.temperature_2m)
-          : '...'}
-        <span>{unit}</span>
-      </p>
+<p className="temperature">
+  {isLoading
+    ? '...'
+    : weatherError
+      ? '--'
+      : weather
+        ? formatTemp(weather.current.temperature_2m)
+        : '--'}
+  {!isLoading && !weatherError && weather && (
+    <span>{unit}</span>
+  )}
+</p>
       <p className="temperature-note">A lovely day to be outside.</p>
     </div>
 

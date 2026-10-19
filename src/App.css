@@ -611,3 +611,26 @@
   color: #d9534f;
   font-size: 13px;
 }
+
+
+.weather-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(120, 220, 180, 0.25);
+  border-top-color: #78dcb4;
+  border-radius: 50%;
+  animation: weather-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes weather-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
