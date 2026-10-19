@@ -43,7 +43,9 @@ const [city, setCity] = useState(() => {
   return 'Ivano-Frankivsk'
 })
 const [searchCity, setSearchCity] = useState('')
-const [unit, setUnit] = useState('C')
+const [unit, setUnit] = useState(() => {
+  return localStorage.getItem('weatherUnit') || 'C'
+})
 const [weather, setWeather] = useState(null)
 const [searchError, setSearchError] = useState('')
 
@@ -185,11 +187,15 @@ useEffect(() => {
     </span>
   </div>
 
+
 <div className="unit-switch">
   <button
     type="button"
     className={unit === 'C' ? 'active' : ''}
-    onClick={() => setUnit('C')}
+    onClick={() => {
+      setUnit('C')
+      localStorage.setItem('weatherUnit', 'C')
+    }}
   >
     °C
   </button>
@@ -197,11 +203,15 @@ useEffect(() => {
   <button
     type="button"
     className={unit === 'F' ? 'active' : ''}
-    onClick={() => setUnit('F')}
+    onClick={() => {
+      setUnit('F')
+      localStorage.setItem('weatherUnit', 'F')
+    }}
   >
     °F
   </button>
 </div>
+
 </header>
       <main>
 <section className="welcome-section">
