@@ -33,15 +33,38 @@ function getWeatherIcon(code) {
 }
 
 function App() {
-const [city, setCity] = useState('Ivano-Frankivsk')
+const [city, setCity] = useState(() => {
+  const savedCity = localStorage.getItem('weatherCity')
+
+  if (savedCity) {
+    return JSON.parse(savedCity).name
+  }
+
+  return 'Ivano-Frankivsk'
+})
 const [searchCity, setSearchCity] = useState('')
 const [unit, setUnit] = useState('C')
 const [weather, setWeather] = useState(null)
 const [searchError, setSearchError] = useState('')
-const [coordinates, setCoordinates] = useState({
-  latitude: 48.92312,
-  longitude: 24.71248,
+
+const [coordinates, setCoordinates] = useState(() => {
+  const savedCity = localStorage.getItem('weatherCity')
+
+  if (savedCity) {
+    const parsedCity = JSON.parse(savedCity)
+
+    return {
+      latitude: parsedCity.latitude,
+      longitude: parsedCity.longitude,
+    }
+  }
+
+  return {
+    latitude: 48.92312,
+    longitude: 24.71248,
+  }
 })
+
 
 const handleSearch = async (event) => {
   event.preventDefault()
@@ -84,7 +107,11 @@ const handleSearch = async (event) => {
       latitude: foundCity.latitude,
       longitude: foundCity.longitude,
     })
-
+    localStorage.setItem('weatherCity', JSON.stringify({
+    name: foundCity.name,
+    latitude: foundCity.latitude,
+    longitude: foundCity.longitude,
+    }))
     setSearchCity('')
   } catch (error) {
     console.error('City search failed:', error)
