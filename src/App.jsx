@@ -221,7 +221,7 @@ useEffect(() => {
     try {
 
     const response = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&current=temperature_2m,apparent_temperature,weather_code&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&current=temperature_2m,apparent_temperature,weather_code,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`
     )
 
 
@@ -402,6 +402,22 @@ useEffect(() => {
           : '...'}
       </strong>
     </div>
+      <div>
+    <span>WIND</span>
+    <strong>
+      {weather
+        ? `${Math.round(weather.current.wind_speed_10m)} km/h`
+        : '...'}
+    </strong>
+  </div>
+    <div>
+    <span>HUMIDITY</span>
+    <strong>
+      {weather
+        ? `${weather.current.relative_humidity_2m}%`
+        : '...'}
+    </strong>
+  </div>
   </div>
 </section>
 
