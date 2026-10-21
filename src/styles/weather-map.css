@@ -1,0 +1,23 @@
+
+.weather-map {
+  width: min(100%, 290px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #eaf3ed;
+  border: 1px solid #e1ebe4;
+}
+
+.weather-map .maplibregl-canvas {
+  outline: none;
+}
+
+@media (max-width: 600px) {
+  .weather-map {
+    width: 100%;
+    max-width: 290px;
+    border-radius: 18px;
+  }
+}

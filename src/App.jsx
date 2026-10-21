@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import WeatherMap from './components/WeatherMap'
 import './App.css'
 import {
   Sun,
@@ -336,6 +337,8 @@ useEffect(() => {
 
 
 <section className="current-weather">
+  <div className="current-weather-content">
+    
   <div className="weather-heading">
     <div>
       <p className="weather-eyebrow">RIGHT NOW</p>
@@ -385,6 +388,7 @@ useEffect(() => {
   </div>
 
   <div className="weather-summary">
+    
     <div>
       <span>FEELS LIKE</span>
       <strong>
@@ -419,6 +423,16 @@ useEffect(() => {
     </strong>
   </div>
   </div>
+  </div>
+  <aside className="weather-map-card">
+  <div className="weather-map-heading">
+    <span className="section-eyebrow">EXPLORE</span>
+    <h3>Weather map</h3>
+    <p>{city}, Ukraine</p>
+  </div>
+
+  <WeatherMap coordinates={coordinates} />
+</aside>
 </section>
 
 
