@@ -1,217 +1,26 @@
 import { useEffect, useState } from 'react'
 import WeatherMap from './components/WeatherMap'
+import { Header } from './components/Header'
+import { Footer } from './components/Footer'
+import { WeatherIcon, AnimatedWeatherArt } from './components/WeatherArt'
+import {
+  getDayName,
+  getFormattedDate,
+  getNextHours,
+  getWeatherDescription,
+  formatTemp,
+} from './utils/weatherUtils'
 import './App.css'
 import {
-  Sun,
-  CloudSun,
-  Cloud,
-  CloudFog,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
   Search,
   Compass,
   Wind,
   Droplets,
   ArrowUpRight,
-  ArrowDownRight,
   Thermometer,
-  Moon,
 } from 'lucide-react'
 
-function getDayName(dateString, index) {
-  if (index === 0) return 'Today'
-
-  return new Date(`${dateString}T12:00:00`).toLocaleDateString('en-US', {
-    weekday: 'short',
-  })
-}
-
-function getFormattedDate() {
-  return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-  }).format(new Date())
-}
-
-function getNextHours(hourly, count = 8) {
-  if (!hourly?.time || !hourly?.temperature_2m || !hourly?.weather_code) {
-    return []
-  }
-
-  // Get current hour in Kyiv time
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Kyiv',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(new Date())
-
-  const getPart = (type) => parts.find((part) => part.type === type)?.value
-
-  const currentHour = `${getPart('year')}-${getPart('month')}-${getPart('day')}T${getPart('hour')}`
-
-  let startIndex = hourly.time.findIndex(
-    (time) => time.slice(0, 13) >= currentHour
-  )
-
-  if (startIndex === -1) return []
-
-  return hourly.time
-    .slice(startIndex, startIndex + count)
-    .map((time, index) => {
-      const dataIndex = startIndex + index
-
-      return {
-        time,
-        temperature: hourly.temperature_2m[dataIndex],
-        weatherCode: hourly.weather_code[dataIndex],
-      }
-    })
-    .filter(
-      (hour) =>
-        hour.temperature !== undefined && hour.weatherCode !== undefined
-    )
-}
-
-function renderAnimatedWeatherArt(weatherCode) {
-  // 0: Clear sky (сонце світить, промені дихають)
-  if (weatherCode === 0) {
-    return (
-      <div className="weather-art art-clear-sky" aria-hidden="true">
-        <div className="art-sun-glow"></div>
-        <div className="art-sun-rays"></div>
-        <div className="weather-sun art-sun-core"></div>
-      </div>
-    )
-  }
-
-  // 1, 2: Partly cloudy / Mainly clear (сонце світить + хмаринка трохи плаває)
-  if (weatherCode === 1 || weatherCode === 2) {
-    return (
-      <div className="weather-art art-partly-cloudy" aria-hidden="true">
-        <div className="art-sun-glow"></div>
-        <div className="weather-sun"></div>
-        <div className="weather-cloud">
-          <span></span>
-        </div>
-      </div>
-    )
-  }
-
-  // 3: Overcast (хмари перекривають небо й злегка коливаються)
-  if (weatherCode === 3) {
-    return (
-      <div className="weather-art art-overcast" aria-hidden="true">
-        <div className="weather-cloud cloud-back">
-          <span></span>
-        </div>
-        <div className="weather-cloud cloud-front">
-          <span></span>
-        </div>
-      </div>
-    )
-  }
-
-  // 45, 48: Foggy (туманні м'які смуги)
-  if (weatherCode === 45 || weatherCode === 48) {
-    return (
-      <div className="weather-art art-foggy" aria-hidden="true">
-        <div className="weather-cloud cloud-fog">
-          <span></span>
-        </div>
-        <div className="fog-lines">
-          <span className="fog-line l1"></span>
-          <span className="fog-line l2"></span>
-          <span className="fog-line l3"></span>
-        </div>
-      </div>
-    )
-  }
-
-  // 51..82: Drizzle, Rain, Showers (хмаринка + краплі дощу падають)
-  if (
-    [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)
-  ) {
-    return (
-      <div className="weather-art art-rainy" aria-hidden="true">
-        <div className="weather-cloud cloud-rain">
-          <span></span>
-        </div>
-        <div className="rain-drops">
-          <span className="rain-drop d1"></span>
-          <span className="rain-drop d2"></span>
-          <span className="rain-drop d3"></span>
-          <span className="rain-drop d4"></span>
-        </div>
-      </div>
-    )
-  }
-
-  // 71..86: Snow (падає сніг)
-  if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) {
-    return (
-      <div className="weather-art art-snowy" aria-hidden="true">
-        <div className="weather-cloud cloud-snow">
-          <span></span>
-        </div>
-        <div className="snow-flakes">
-          <span className="snow-flake s1">•</span>
-          <span className="snow-flake s2">•</span>
-          <span className="snow-flake s3">•</span>
-          <span className="snow-flake s4">•</span>
-        </div>
-      </div>
-    )
-  }
-
-  // 95, 96, 99: Thunderstorm (гроза, спалах блискавки)
-  if ([95, 96, 99].includes(weatherCode)) {
-    return (
-      <div className="weather-art art-thunder" aria-hidden="true">
-        <div className="weather-cloud cloud-storm">
-          <span></span>
-        </div>
-        <div className="art-lightning">
-          <CloudLightning className="lightning-bolt" size={28} />
-        </div>
-        <div className="rain-drops storm-drops">
-          <span className="rain-drop d1"></span>
-          <span className="rain-drop d3"></span>
-        </div>
-      </div>
-    )
-  }
-
-  // За замовчуванням
-  return (
-    <div className="weather-art art-partly-cloudy" aria-hidden="true">
-      <div className="art-sun-glow"></div>
-      <div className="weather-sun"></div>
-      <div className="weather-cloud">
-        <span></span>
-      </div>
-    </div>
-  )
-}
-
-function getWeatherIcon(code, className = 'weather-icon') {
-  if (code === 0) return <Sun className={`${className} icon-sun`} />
-  if ([1, 2].includes(code)) return <CloudSun className={`${className} icon-cloud-sun`} />
-  if (code === 3) return <Cloud className={`${className} icon-cloud`} />
-  if ([45, 48].includes(code)) return <CloudFog className={`${className} icon-fog`} />
-  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code))
-    return <CloudRain className={`${className} icon-rain`} />
-  if ([71, 73, 75, 77, 85, 86].includes(code))
-    return <CloudSnow className={`${className} icon-snow`} />
-  if ([95, 96, 99].includes(code))
-    return <CloudLightning className={`${className} icon-lightning`} />
-
-  return <Sun className={`${className} icon-sun`} />
-}
+const QUICK_CITIES = ['Kyiv', 'Lviv', 'Odesa', 'Kharkiv', 'Ivano-Frankivsk']
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -320,26 +129,6 @@ function App() {
     }
   }
 
-  const formatTemp = (celsius) => {
-    if (celsius === undefined || celsius === null) return '--'
-    const temperature =
-      unit === 'C' ? celsius : (celsius * 9) / 5 + 32
-    return `${Math.round(temperature)}°`
-  }
-
-  const getWeatherDescription = (code) => {
-    if (code === 0) return 'Clear sky'
-    if (code === 1) return 'Mainly clear'
-    if (code === 2) return 'Partly cloudy'
-    if (code === 3) return 'Overcast'
-    if ([45, 48].includes(code)) return 'Foggy'
-    if ([51, 53, 55, 56, 57].includes(code)) return 'Drizzle'
-    if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return 'Rain'
-    if ([71, 73, 75, 77, 85, 86].includes(code)) return 'Snow'
-    if ([95, 96, 99].includes(code)) return 'Thunderstorm'
-    return 'Weather conditions'
-  }
-
   useEffect(() => {
     let ignore = false
 
@@ -364,7 +153,9 @@ function App() {
       } catch (error) {
         console.error('Weather request failed:', error)
         if (!ignore) {
-          setWeatherError('Не вдалося завантажити погоду. Перевірте з’єднання та спробуйте ще раз.')
+          setWeatherError(
+            'Не вдалося завантажити погоду. Перевірте з’єднання та спробуйте ще раз.'
+          )
         }
       } finally {
         if (!ignore) {
@@ -379,8 +170,6 @@ function App() {
       ignore = true
     }
   }, [coordinates])
-
-  const quickCities = ['Kyiv', 'Lviv', 'Odesa', 'Kharkiv', 'Ivano-Frankivsk']
 
   const handleQuickCitySelect = async (selectedCityName) => {
     if (selectedCityName === city) return
@@ -419,59 +208,12 @@ function App() {
   return (
     <div className="app-layout">
       {/* Editorial Header */}
-      <header className="site-header">
-        <div className="header-inner">
-          <div className="brand-group">
-            <div className="brand-mark">
-              <span className="brand-dot" aria-hidden="true"></span>
-              <span className="brand-initial">m.</span>
-            </div>
-            <div className="brand-meta">
-              <span className="brand-name">Mintix Weather</span>
-              <span className="brand-badge">EDITION 2026</span>
-            </div>
-          </div>
-
-          <div className="header-actions">
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-            >
-              {theme === 'light' ? (
-                <Moon size={16} aria-hidden="true" />
-              ) : (
-                <Sun size={16} aria-hidden="true" />
-              )}
-            </button>
-
-            <div className="unit-switch" role="group" aria-label="Temperature unit selector">
-              <button
-                type="button"
-                className={unit === 'C' ? 'active' : ''}
-                onClick={() => {
-                  setUnit('C')
-                  localStorage.setItem('weatherUnit', 'C')
-                }}
-              >
-                °C
-              </button>
-              <button
-                type="button"
-                className={unit === 'F' ? 'active' : ''}
-                onClick={() => {
-                  setUnit('F')
-                  localStorage.setItem('weatherUnit', 'F')
-                }}
-              >
-                °F
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        theme={theme}
+        toggleTheme={toggleTheme}
+        unit={unit}
+        setUnit={setUnit}
+      />
 
       <main className="main-content">
         {/* Editorial Action Bar / Compact Hero */}
@@ -506,7 +248,7 @@ function App() {
           <div className="quick-cities" aria-label="Quick city suggestions">
             <span className="quick-label">Jump to:</span>
             <div className="quick-chips">
-              {quickCities.map((c) => (
+              {QUICK_CITIES.map((c) => (
                 <button
                   key={c}
                   type="button"
@@ -559,7 +301,7 @@ function App() {
                       : weatherError
                       ? '--'
                       : weather
-                      ? formatTemp(weather.current.temperature_2m)
+                      ? formatTemp(weather.current.temperature_2m, unit)
                       : '--'}
                   </span>
                   {!isLoading && !weatherError && weather && (
@@ -568,7 +310,7 @@ function App() {
                 </div>
                 <p className="editorial-lead">
                   {weather
-                    ? `Feels like ${formatTemp(weather.current.apparent_temperature)}${unit}. `
+                    ? `Feels like ${formatTemp(weather.current.apparent_temperature, unit)}${unit}. `
                     : ''}
                   {weather?.current.weather_code === 0
                     ? 'Clear conditions across the city.'
@@ -579,7 +321,9 @@ function App() {
               </div>
 
               <div className="illustration-wrapper">
-                {renderAnimatedWeatherArt(weather?.current?.weather_code ?? 0)}
+                <AnimatedWeatherArt
+                  weatherCode={weather?.current?.weather_code ?? 0}
+                />
               </div>
             </div>
 
@@ -591,7 +335,9 @@ function App() {
                   <span>FEELS LIKE</span>
                 </div>
                 <span className="metric-value">
-                  {weather ? `${formatTemp(weather.current.apparent_temperature)}${unit}` : '—'}
+                  {weather
+                    ? `${formatTemp(weather.current.apparent_temperature, unit)}${unit}`
+                    : '—'}
                 </span>
               </div>
 
@@ -602,8 +348,9 @@ function App() {
                 </div>
                 <span className="metric-value">
                   {weather
-                    ? `${formatTemp(weather.daily.temperature_2m_max[0])} / ${formatTemp(
-                        weather.daily.temperature_2m_min[0]
+                    ? `${formatTemp(weather.daily.temperature_2m_max[0], unit)} / ${formatTemp(
+                        weather.daily.temperature_2m_min[0],
+                        unit
                       )}`
                     : '—'}
                 </span>
@@ -665,10 +412,10 @@ function App() {
                 <div className="hourly-card" key={hour.time}>
                   <time className="hourly-time">{hour.time.slice(11, 16)}</time>
                   <div className="hourly-icon-slot">
-                    {getWeatherIcon(hour.weatherCode)}
+                    <WeatherIcon code={hour.weatherCode} />
                   </div>
                   <span className="hourly-temp">
-                    {formatTemp(hour.temperature)}
+                    {formatTemp(hour.temperature, unit)}
                   </span>
                   <span className="hourly-desc">
                     {getWeatherDescription(hour.weatherCode)}
@@ -698,7 +445,7 @@ function App() {
                   </div>
 
                   <div className="daily-icon-slot">
-                    {getWeatherIcon(weather.daily.weather_code[index])}
+                    <WeatherIcon code={weather.daily.weather_code[index]} />
                   </div>
 
                   <span className="daily-condition">
@@ -707,11 +454,11 @@ function App() {
 
                   <div className="daily-temp-range">
                     <span className="temp-hi">
-                      {formatTemp(weather.daily.temperature_2m_max[index])}
+                      {formatTemp(weather.daily.temperature_2m_max[index], unit)}
                     </span>
                     <span className="temp-divider">/</span>
                     <span className="temp-lo">
-                      {formatTemp(weather.daily.temperature_2m_min[index])}
+                      {formatTemp(weather.daily.temperature_2m_min[index], unit)}
                     </span>
                   </div>
                 </div>
@@ -721,29 +468,7 @@ function App() {
       </main>
 
       {/* Editorial Footer */}
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <div className="footer-left">
-            <div className="footer-brand">
-              <span className="footer-mark">m.</span>
-              <span className="footer-name">Mintix Weather</span>
-            </div>
-            <p className="footer-bio">
-              A calm, editorial atmospheric instrument designed for daily life in Ukraine.
-            </p>
-          </div>
-
-          <div className="footer-right">
-            <div className="footer-metadata">
-              <span>Data source: Open-Meteo API</span>
-              <span>Cartography: MapLibre GL & OpenFreeMap</span>
-            </div>
-            <p className="footer-copy">
-              © 2026 Mintix Ecosystem • Crafted with restraint and clarity.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
