@@ -55,6 +55,16 @@ function applyMapColors(map) {
       map.setPaintProperty(layerId, paintProperty, color)
     }
   })
+
+  // Прибираємо дефолтні чорні кружечки-точки міст/сіл від стилю карти,
+  // щоб вони не вилазили як чорні плями під кастомним маркером або назвами міст
+  ;['label_village', 'label_town', 'label_city', 'label_city_capital'].forEach(
+    (layerId) => {
+      if (map.getLayer(layerId)) {
+        map.setLayoutProperty(layerId, 'icon-image', '')
+      }
+    }
+  )
 }
 
 function createCityMarker() {

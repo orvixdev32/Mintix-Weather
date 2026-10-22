@@ -1,23 +1,98 @@
-
 .weather-map {
-  width: min(100%, 290px);
-  aspect-ratio: 1 / 1;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
-  background: #eaf3ed;
-  border: 1px solid #e1ebe4;
+  background: var(--bg-surface-subtle);
 }
 
 .weather-map .maplibregl-canvas {
   outline: none;
 }
 
-@media (max-width: 600px) {
-  .weather-map {
-    width: 100%;
-    max-width: 290px;
-    border-radius: 18px;
-  }
+/* Custom styling for map controls to match Mintix editorial theme */
+.weather-map .maplibregl-ctrl-group {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.weather-map .maplibregl-ctrl-group button {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background-color var(--transition-fast);
+}
+
+.weather-map .maplibregl-ctrl-group button:last-child {
+  border-bottom: none;
+}
+
+.weather-map .maplibregl-ctrl-group button:hover {
+  background-color: var(--bg-surface-subtle);
+}
+
+.weather-map .maplibregl-ctrl-attrib {
+  font-size: 10px;
+  background-color: var(--bg-surface);
+  color: var(--text-muted);
+  border-top-left-radius: var(--radius-xs);
+  padding: 2px 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Компактний значок інформації (i) */
+.weather-map .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-height: 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0 !important;
+  margin: 10px !important;
+  border-radius: 50% !important;
+}
+
+.weather-map .maplibregl-ctrl-attrib.maplibregl-compact::after,
+.weather-map .maplibregl-ctrl-attrib.maplibregl-compact::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Сама кругла кнопка значка (i) — чітке центрування піктограми */
+.weather-map .maplibregl-ctrl-attrib-button {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  outline: none !important;
+  cursor: pointer;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 20px 20px !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* На темній темі: чорний фон кнопки з білою відцентрованою іконкою i */
+[data-theme='dark'] .weather-map .maplibregl-ctrl-attrib-button {
+  background-color: #151b18 !important;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill-rule='evenodd' viewBox='0 0 20 20' fill='%23ffffff'%3E %3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E %3C/svg%3E") !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
+  filter: none !important;
+}
+
+.weather-map .maplibregl-ctrl-attrib a {
+  color: var(--weather-sky);
+  text-decoration: none;
+}
+
+.weather-map .maplibregl-ctrl-attrib a:hover {
+  text-decoration: underline;
 }

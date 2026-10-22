@@ -1,16 +1,123 @@
+/* Base & Typography Reset */
+:root {
+  /* Brand Tokens - Mintix Ecosystem */
+  --mintix-brand: #b7f34a;
+  --mintix-brand-hover: #a6e736;
+  --mintix-brand-soft: rgba(183, 243, 74, 0.2);
+  --mintix-brand-glow: rgba(183, 243, 74, 0.35);
 
-/* Базові налаштування сторінки */
+  /* Weather & Semantic Accents */
+  --weather-sky: #4298b5;
+  --weather-sky-soft: #edf7fa;
+  --weather-sky-border: #d2ecf4;
+  --weather-sun: #f59e0b;
+  --weather-sun-soft: #fef3c7;
+
+  /* Surfaces & Backgrounds */
+  --bg-page: #f6f9f7;
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #f0f5f2;
+  --bg-surface-inset: #e8f0eb;
+  --bg-header: rgba(246, 249, 247, 0.85);
+
+  /* Typography Colors */
+  --text-primary: #172a22;
+  --text-secondary: #486357;
+  --text-muted: #738c82;
+  --text-on-brand: #132b1a;
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(28, 59, 45, 0.08);
+  --border-strong: rgba(28, 59, 45, 0.16);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(23, 42, 34, 0.04);
+  --shadow-card: 0 4px 20px -2px rgba(23, 42, 34, 0.05), 0 2px 6px -1px rgba(23, 42, 34, 0.03);
+  --shadow-dropdown: 0 10px 25px -5px rgba(23, 42, 34, 0.1);
+
+  /* Radii */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Typography scale */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Space Grotesk', var(--font-sans);
+
+  /* Transitions */
+  --transition-fast: 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='dark'] {
+  --mintix-brand: #b7f34a;
+  --mintix-brand-hover: #c4f762;
+  --mintix-brand-soft: rgba(183, 243, 74, 0.15);
+  --mintix-brand-glow: rgba(183, 243, 74, 0.25);
+
+  --weather-sky: #63c0df;
+  --weather-sky-soft: rgba(66, 152, 181, 0.15);
+  --weather-sky-border: rgba(99, 192, 223, 0.25);
+  --weather-sun: #fbbf24;
+  --weather-sun-soft: rgba(251, 191, 36, 0.15);
+
+  --bg-page: #0f1412;
+  --bg-surface: #151b18;
+  --bg-surface-subtle: #1c2420;
+  --bg-surface-inset: #121815;
+  --bg-header: rgba(15, 20, 18, 0.85);
+
+  --text-primary: #f0f7f3;
+  --text-secondary: #9eb8ac;
+  --text-muted: #6e857b;
+  --text-on-brand: #0f1c12;
+
+  --border-subtle: rgba(240, 247, 243, 0.08);
+  --border-strong: rgba(240, 247, 243, 0.16);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+  --shadow-dropdown: 0 14px 28px -4px rgba(0, 0, 0, 0.5);
+}
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  min-height: 100vh;
 }
 
 button,
 input {
-  font: inherit;
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
