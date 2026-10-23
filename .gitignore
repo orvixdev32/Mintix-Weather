@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Local notes and personal documentation
+docs/MINTIX_WEATHER_INTERVIEW_GUIDE.txt
