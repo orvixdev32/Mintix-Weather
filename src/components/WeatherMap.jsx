@@ -162,7 +162,10 @@ function WeatherMap({ coordinates }) {
   const previousCoordinatesRef = useRef(coordinates)
   const selectedCoordinatesRef = useRef(coordinates)
 
-  selectedCoordinatesRef.current = coordinates
+  // Synchronize ref in effect, outside render
+  useEffect(() => {
+    selectedCoordinatesRef.current = coordinates
+  }, [coordinates])
 
   useEffect(() => {
     const container = mapContainerRef.current
@@ -219,7 +222,7 @@ function WeatherMap({ coordinates }) {
       map.remove()
       mapRef.current = null
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const previous = previousCoordinatesRef.current
@@ -243,7 +246,7 @@ function WeatherMap({ coordinates }) {
       curve: 1.4,
       essential: true,
     })
-  }, [coordinates.latitude, coordinates.longitude])
+  }, [coordinates]) // updates when coordinates object changes coordinates.latitude or longitude
 
   return (
     <div
